@@ -953,6 +953,10 @@ Cache::evictBlock(CacheBlk *blk)
 
     invalidateBlock(blk);
 
+    if (blk->wasPrefetched()) {
+        ppEvict->notify(pkt);
+    }
+
     return pkt;
 }
 

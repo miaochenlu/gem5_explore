@@ -361,6 +361,9 @@ class BaseCache : public ClockedObject
     /** To probe when a cache miss occurs */
     ProbePointArg<PacketPtr> *ppMiss;
 
+    /** To probe when a cache eviction occurs */
+    ProbePointArg<PacketPtr> *ppEvict;
+
     /** To probe when a cache fill occurs */
     ProbePointArg<PacketPtr> *ppFill;
 
