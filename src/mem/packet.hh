@@ -395,6 +395,10 @@ class Packet : public Printable
     /// The size of the request or transfer.
     unsigned size;
 
+    /// True if the prefetch bit is set
+    bool _isPrefetched;
+
+    bool _isFromPrefetcher;
     /**
      * Track the bytes found that satisfy a functional read.
      */
@@ -837,6 +841,24 @@ class Packet : public Printable
         return _isSecure;
     }
 
+    bool isFromPrefetcher() const
+    {
+        return _isFromPrefetcher;
+    }
+
+    void setFromPrefetcher() { _isFromPrefetcher = true; }
+
+    void clearFromPrefetcher() { _isFromPrefetcher = false; }
+
+    bool isPrefetched() const
+    {
+        return _isPrefetched;
+    }
+
+    void setPrefetched() { _isPrefetched = true; }
+
+    void clearPrefetchedDead() { _isPrefetched = false; }
+
     /**
      * Accessor function to atomic op.
      */
@@ -875,6 +897,7 @@ class Packet : public Printable
     Packet(const RequestPtr &_req, MemCmd _cmd)
         :  cmd(_cmd), id((PacketId)_req.get()), req(_req),
            data(nullptr), addr(0), _isSecure(false), size(0),
+           _isPrefetched(false), _isFromPrefetcher(false),
            _qosValue(0),
            htmReturnReason(HtmCacheFailure::NO_FAIL),
            htmTransactionUid(0),
@@ -916,6 +939,7 @@ class Packet : public Printable
     Packet(const RequestPtr &_req, MemCmd _cmd, int _blkSize, PacketId _id = 0)
         :  cmd(_cmd), id(_id ? _id : (PacketId)_req.get()), req(_req),
            data(nullptr), addr(0), _isSecure(false),
+            _isPrefetched(false), _isFromPrefetcher(false),
            _qosValue(0),
            htmReturnReason(HtmCacheFailure::NO_FAIL),
            htmTransactionUid(0),
@@ -943,6 +967,7 @@ class Packet : public Printable
         :  cmd(pkt->cmd), id(pkt->id), req(pkt->req),
            data(nullptr),
            addr(pkt->addr), _isSecure(pkt->_isSecure), size(pkt->size),
+           _isPrefetched(false), _isFromPrefetcher(false),
            bytesValid(pkt->bytesValid),
            _qosValue(pkt->qosValue()),
            htmReturnReason(HtmCacheFailure::NO_FAIL),

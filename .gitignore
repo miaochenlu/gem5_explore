@@ -31,4 +31,9 @@ m5out
 configs/example/memcheck.cfg
 configs/dram/lowp_sweep.cfg
 .pyenv
+/test
+/script
+diff.txt
+*.png
+ext/dramsim3/DRAMsim3/
 .vscode

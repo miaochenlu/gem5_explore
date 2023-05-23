@@ -233,6 +233,21 @@ def addNoISAOptions(parser):
         "only parameters of its children.",
     )
 
+    # ArchDB option
+    parser.add_argument(
+        "--enable-arch-db", action="store_true", help="enable arch database"
+    )
+    parser.add_argument(
+        "--arch-db-file", action="store", help="Where to save database"
+    )
+    parser.add_argument(
+        "--arch-db-fromstart", default=True, help="start arch database from "
+    )
+    # Trace Monitor option
+    parser.add_argument(
+        "--trace-monitor", action="store_true", help="enable trace monitor"
+    )
+
 
 # Add common options that assume a non-NULL ISA.
 

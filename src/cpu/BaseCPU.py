@@ -53,6 +53,8 @@ from m5.objects.CPUTracers import ExeTracer
 from m5.objects.SubSystem import SubSystem
 from m5.objects.ClockDomain import *
 from m5.objects.Platform import Platform
+from m5.objects.CommMonitor import CommMonitor
+from m5.objects.MemTraceProbe import MemTraceProbe
 
 default_tracer = ExeTracer()
 
@@ -186,11 +188,32 @@ class BaseCPU(ClockedObject):
             bus.cpu_side_ports, bus.cpu_side_ports, bus.mem_side_ports
         )
 
-    def addPrivateSplitL1Caches(self, ic, dc, iwc=None, dwc=None):
+    def addPrivateSplitL1Caches(
+        self, ic, dc, iwc=None, dwc=None, monitor=False
+    ):
         self.icache = ic
         self.dcache = dc
-        self.icache_port = ic.cpu_side
-        self.dcache_port = dc.cpu_side
+
+        if monitor:
+            self.monitor_cpu_l1i = CommMonitor()
+            self.monitor_cpu_l1i.trace = MemTraceProbe(
+                trace_file="cpu_l1i_trace.tar.gz"
+            )
+            self.monitor_cpu_l1i.mem_side_port = ic.cpu_side
+
+            self.icache_port = self.monitor_cpu_l1i.cpu_side_port
+
+            self.monitor_cpu_l1d = CommMonitor()
+            self.monitor_cpu_l1d.trace = MemTraceProbe(
+                trace_file="cpu_l1d_trace.tar.gz"
+            )
+            self.monitor_cpu_l1d.mem_side_port = dc.cpu_side
+
+            self.dcache_port = self.monitor_cpu_l1d.cpu_side_port
+        else:
+            self.icache_port = ic.cpu_side
+            self.dcache_port = dc.cpu_side
+
         self._cached_ports = ["icache.mem_side", "dcache.mem_side"]
         if iwc and dwc:
             self.itb_walker_cache = iwc

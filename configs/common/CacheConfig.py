@@ -140,7 +140,16 @@ def config_cache(options, system):
 
         system.tol2bus = L2XBar(clk_domain=system.cpu_clk_domain)
         system.l2.cpu_side = system.tol2bus.mem_side_ports
-        system.l2.mem_side = system.membus.cpu_side_ports
+
+        if options.trace_monitor:
+            system.monitor_l2_mem = CommMonitor()
+            system.monitor_l2_mem.trace = MemTraceProbe(
+                trace_file="l2_mem_trace.tar.gz"
+            )
+            system.monitor_l2_mem.cpu_side_port = system.l2.mem_side
+            system.monitor_l2_mem.mem_side_port = system.membus.cpu_side_ports
+        else:
+            system.l2.mem_side = system.membus.cpu_side_ports
 
     if options.memchecker:
         system.memchecker = MemChecker()
@@ -177,7 +186,7 @@ def config_cache(options, system):
             # When connecting the caches, the clock is also inherited
             # from the CPU in question
             system.cpu[i].addPrivateSplitL1Caches(
-                icache, dcache, iwalkcache, dwalkcache
+                icache, dcache, iwalkcache, dwalkcache, options.trace_monitor
             )
 
             if options.memchecker:
@@ -207,11 +216,44 @@ def config_cache(options, system):
 
         system.cpu[i].createInterruptController()
         if options.l2cache:
-            system.cpu[i].connectAllPorts(
-                system.tol2bus.cpu_side_ports,
-                system.membus.cpu_side_ports,
-                system.membus.mem_side_ports,
-            )
+            if options.trace_monitor:
+                system.monitor_cpu_l1d_l2 = CommMonitor()
+                system.monitor_cpu_l1d_l2.trace = MemTraceProbe(
+                    trace_file="l1d_l2_trace.tar.gz"
+                )
+                system.monitor_cpu_l1d_l2.cpu_side_port = system.cpu[
+                    i
+                ].dcache.mem_side
+                system.monitor_cpu_l1d_l2.mem_side_port = (
+                    system.tol2bus.cpu_side_ports
+                )
+
+                system.monitor_cpu_l1i_l2 = CommMonitor()
+                system.monitor_cpu_l1i_l2.trace = MemTraceProbe(
+                    trace_file="l1i_l2_trace.tar.gz"
+                )
+                system.monitor_cpu_l1i_l2.cpu_side_port = system.cpu[
+                    i
+                ].icache.mem_side
+                system.monitor_cpu_l1i_l2.mem_side_port = (
+                    system.tol2bus.cpu_side_ports
+                )
+
+                system.cpu[i].connectUncachedPorts(
+                    system.membus.cpu_side_ports, system.membus.mem_side_ports
+                )
+                system.cpu[
+                    i
+                ].itb_walker_cache.mem_side = system.tol2bus.cpu_side_ports
+                system.cpu[
+                    i
+                ].dtb_walker_cache.mem_side = system.tol2bus.cpu_side_ports
+            else:
+                system.cpu[i].connectAllPorts(
+                    system.tol2bus.cpu_side_ports,
+                    system.membus.cpu_side_ports,
+                    system.membus.mem_side_ports,
+                )
         elif options.external_memory_system:
             system.cpu[i].connectUncachedPorts(
                 system.membus.cpu_side_ports, system.membus.mem_side_ports

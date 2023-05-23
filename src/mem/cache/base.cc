@@ -109,6 +109,7 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       noTargetMSHR(nullptr),
       missCount(p.max_miss_count),
       addrRanges(p.addr_ranges.begin(), p.addr_ranges.end()),
+      archDBer(p.arch_db),
       system(p.system),
       stats(*this)
 {
@@ -457,6 +458,23 @@ BaseCache::recvTimingReq(PacketPtr pkt)
 
         handleTimingReqHit(pkt, blk, request_time);
     } else {
+        // ArchDB: for now we only track packet which has PC
+        // and is normal load/store
+        // TODO: for now there are some bugs in vaddrs
+        if (archDBer && pkt->req->hasPC() &&
+            (pkt->isRead() || pkt->isWrite())){
+            Addr pc = pkt->req->getPC();
+            int cmd = pkt->cmd.toInt();
+            Addr vaddr = pkt->req->hasVaddr() ? pkt->req->getVaddr() : 0;
+            Addr paddr = pkt->req->getPaddr();
+            uint8_t source = pkt->isRead() ? 0 : 1;
+            uint64_t curCycle = ticksToCycles(curTick());
+
+            archDBer->MissTrace_write(
+              pc, cmd, pkt->isFromPrefetcher(), source,
+                paddr, vaddr, curCycle, this->name().c_str());
+        }
+
         handleTimingReqMiss(pkt, blk, forward_time, request_time);
 
         ppMiss->notify(pkt);
@@ -1727,6 +1745,14 @@ BaseCache::writebackBlk(CacheBlk *blk)
 
     pkt->allocate();
     pkt->setDataFromBlock(blk->data, blkSize);
+
+    // blk->wasPrefetched()
+    if (writebackClean) {
+
+        if (blk->wasPrefetched())
+            pkt->setPrefetched();
+
+    }
 
     // When a block is compressed, it must first be decompressed before being
     // sent for writeback.

@@ -173,6 +173,8 @@ class BaseCache(ClockedObject):
     # data cache.
     write_allocator = Param.WriteAllocator(NULL, "Write allocator")
 
+    arch_db = Param.ArchDBer(Parent.any, "Arch DB")
+
 
 class Cache(BaseCache):
     type = "Cache"

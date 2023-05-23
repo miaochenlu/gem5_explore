@@ -74,6 +74,7 @@ Queued::DeferredPacket::createPkt(Addr paddr, unsigned blk_size,
         // Tag prefetch packet with  accessing pc
         pkt->req->setPC(pfInfo.getPC());
     }
+    pkt->setFromPrefetcher();
     tick = t;
 }
 

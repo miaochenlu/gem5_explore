@@ -552,6 +552,10 @@ Cache::createMissPacket(PacketPtr cpu_pkt, CacheBlk *blk,
                 __func__, cpu_pkt->print(), pkt->print());
     }
 
+    if (cpu_pkt->isFromPrefetcher()) {
+        pkt->setFromPrefetcher();
+    }
+
     // the packet should be block aligned
     assert(pkt->getAddr() == pkt->getBlockAddr(blkSize));
 

@@ -47,7 +47,7 @@ class MemTraceProbe(BaseMemProbe):
     trace_compress = Param.Bool(True, "Enable trace compression")
 
     # For requests with a valid PC, include the PC in the trace
-    with_pc = Param.Bool(False, "Include PC info in the trace")
+    with_pc = Param.Bool(True, "Include PC info in the trace")
 
     # packet trace output file, disabled by default
     trace_file = Param.String("", "Packet trace output file")

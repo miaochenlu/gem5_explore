@@ -206,6 +206,21 @@ system.cpu_clk_domain = SrcClockDomain(
 if args.elastic_trace_en:
     CpuConfig.config_etrace(CPUClass, system.cpu, args)
 
+if args.enable_arch_db:
+    system.arch_db = ArchDBer(arch_db_file=args.arch_db_file)
+    system.arch_db.dump_from_start = args.arch_db_fromstart
+    system.arch_db.table_cmds = [
+        "CREATE TABLE MissTrace("
+        "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "PC INT NOT NULL,"
+        "FROM_PF BOOL NOT NULL,"
+        "CMD INT NOT NULL,"
+        "SOURCE INT NOT NULL,"
+        "PADDR INT NOT NULL,"
+        "VADDR INT NOT NULL,"
+        "STAMP INT NOT NULL,"
+        "SITE TEXT);",
+    ]
 # All cpus belong to a common cpu_clk_domain, therefore running at a common
 # frequency.
 for cpu in system.cpu:
